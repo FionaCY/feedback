@@ -1,0 +1,58 @@
+如图，这是滴滴打车订单的评价页面，里面核心主要有两个，第一个是星星与标签内容，第二个是文本框内容与剩余文字提醒。
+我将评价界面的数据作为一个参数传入给前端，更符合前后端交互的思维，前端只是纯展示，后端提供数据。
+我做了两份代码，第一份是用js + webpack写的，第二份是采用 vue + webpack写的，不要问我为什么都要用webpack（感觉webpack配置更有开发的感觉）。这个小项目其实从开发水平上很简单，但是再简单的项目独自开发总能遇上一些坑。
+(1) 第一个坑。设备适配的坑。
+移动端适配总是比较麻烦的，一开始是做的pc上，后来想想还是适配移动端比较好。（毕竟滴滴那个页面就是放在移动端上的）一放到移动端调试，布局就错位了，所以自己在大的布局上改成百分比布局，在小的地方，有些文字是采用 rem进行适配，还有些小细节（iphone6下）图片有点错位，自己又采用了媒体查询方式进行适配。~~一开始的布局思考是多么重要，直接决定了之后调试适配的难易程度。
+(2) webpack 配置
+webpack配置总能让我感到代码是多么的冷血，一开始的学习，看教程总是配置不起来。后来终于有点小懂webpack配置中的entry, output等配置项，但是又掉入到babel的坑，后来又知晓了loader的含义(如babel-loader是将es6转换成es5，css-loader，file-loader将js引入的css，文件等loader进js文件)。但是配置vue的时候又一直报 vue can't find，后来查询才知道得在config里面加入
+resolve: {
+	alias: {
+	  vue: 'vue/dist/vue.js'
+	}
+}
+才可以，那个问题是vue引入的文件错误了。
+(3) js和vue实现遇见的坑
+感觉自己在实现js里遇见的问题主要是事件监听问题，每一个星星都得监听一个click事件，监听该事件后可能还需更改其他几个星星的状态。每个星星点击时下面的标签都要跟着更新，且还要循环每个标签都添加一个click事件。
+星星添加click事件：
+for (let i = 0; i < starArr.length; i++) {
+	let ele = starArr[i]
+  ele.addEventListener('touchend', function () {
+  // 事件内容
+  }
+}
+标签添加click事件：
+根据星星个数标签内容跟着变化
+let content = ''
+for (let i = 0; i < data.length; i++) {
+  content += `
+  <div class="tab-item" choosed="false" chooseId="${data[i].id}">
+    <p>${data[i].name}</p>
+  </div>`
+}
+标签添加click事件：
+let tabEle = document.getElementsByClassName('tab-item')
+for (let j = 0; j < tabEle.length; j++) {
+  let el = tabEle[j]
+  el.addEventListener('touchend', function () {
+  }
+}
+
+在原生js实现中，这样的循环添加监听总是我有点不放心，但是在vue里面对元素的click事件添加总感觉让我很放心。
+<div class="star-content common-padding">
+  <h5>请您对本次出行进行评价</h5>
+  <img :src="starCount >= 1 ? imgStar:imgStarInvert" @click="starClick(1)">
+  <img :src="starCount >= 2 ? imgStar:imgStarInvert" @click="starClick(2)">
+  <img :src="starCount >= 3 ? imgStar:imgStarInvert" @click="starClick(3)">
+  <img :src="starCount >= 4 ? imgStar:imgStarInvert" @click="starClick(4)">
+  <img :src="starCount >= 5 ? imgStar:imgStarInvert" @click="starClick(5)">       
+  <p>{{ questionList[starCount].title }}</p>
+</div>
+<div class="evaluat-tab">
+  <div class="tab-item" v-for="(qus, index) in questionList[starCount].tags" @click="tagClick">
+  	<span choosed="false">{{ qus.name }}</span>
+  </div>
+</div>
+十分清晰的代码，却实现了很多行原生js需要写的逻辑，再一次让我体会到了数据驱动UI的感觉。
+vue的整体结构如下：
+
+其实在开发过程中，遇到的问题还是不少的，一方面说明了自己的基础能力有待加强，需要自己努力学习。另一方面其实也让我感觉到再简单的一件成品，背后总有一些不为人知的事。
